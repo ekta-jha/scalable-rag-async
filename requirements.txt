@@ -1,0 +1,13 @@
+fastapi
+uvicorn
+redis
+rq
+pypdf
+pypdf
+python-multipart
+openai
+langchain-text-splitters
+langchain
+langchain-community
+langchain-openai
+langchain-qdrant
