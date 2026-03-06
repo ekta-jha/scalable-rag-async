@@ -1,5 +1,6 @@
 import os
 from fastapi import APIRouter, UploadFile, File, Query
+from typing import Optional
 from rq.job import Job
 from rq import Retry
 
@@ -34,10 +35,16 @@ async def upload_pdf(file: UploadFile = File(...)):
         "status": "queued"
     }
 
-# Semilarity Search APi
-@router.get("/search")
-def search(query: str = Query(...)):
-    results = retrieve_similar_chunks(query)
+# Similarity Search APi
+@router.get("/similarity_search")
+def search(
+    query: str = Query(...),
+    file_name: str | None = Query
+    ):
+    results = retrieve_similar_chunks(
+        query=query,
+        file_name=file_name
+    )
 
     return {
         "query": query,
@@ -47,7 +54,9 @@ def search(query: str = Query(...)):
 
 # RAG Query API
 @router.post("/rag-query")
-def enqueue_rag_query(query: str = Query(...)):
+def enqueue_rag_query(
+        query: str = Query(...),
+        file_name: Optional[str] = Query(None)):
     """
     Enqueue a RAG query to be processed by the worker.
     Returns a job ID.
@@ -55,7 +64,9 @@ def enqueue_rag_query(query: str = Query(...)):
     job = queue.enqueue(
         rag_query_task,
         query,
-        job_timeout=120
+        file_name,
+        job_timeout=120,
+        result_ttl=3600
     )
 
     return{
@@ -80,7 +91,7 @@ def get_job_ressult(job_id: str):
     if job.is_failed:
         return {
             "status": "failed",
-            "result": job.result
+            "error": str(job.exc_info)
         }
     return {
         "status": job.get_status()

@@ -16,7 +16,7 @@ def ingest_document_task(file_path: str):
     return ingest_pdf(file_path)
 
 # Celery worker task for RAG query
-def rag_query_task(query: str):
+def rag_query_task(query: str, file_name: str | None=None):
     """ 
     Worker task: performs RAG for a given query.
 
@@ -27,7 +27,11 @@ def rag_query_task(query: str):
     - Return final answer
     """
     # Step A - Semantic Search
-    chunks = retrieve_similar_chunks(query, k=3)
+    chunks = retrieve_similar_chunks(
+            query=query, 
+            k=3,
+            file_name=file_name
+        )
 
     # Combine chunks
     context_text = "\n\n".join(chunks)
@@ -36,7 +40,7 @@ def rag_query_task(query: str):
     client = get_azure_openai_client()
 
     # Step C — Build prompt
-    system_msg = "You are an AI assistant. Answer succintly using context from retieved document pieces."
+    system_msg = "You are an AI assistant. Answer using the provided context only."
     user_msg = f"Context: \n{context_text}\n\n User Query:\n{query}"
 
     # Call Chat Completion
