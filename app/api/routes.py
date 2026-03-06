@@ -4,7 +4,6 @@ from rq.job import Job
 from rq import Retry
 
 from app.core.redis_client import redis_conn, queue
-from app.queue.queue_client import queue
 from app.rag.pdf_loader import load_pdf, split_documents
 from app.rag.embeddings import get_embedding
 from app.rag.vector_store import store_documents
