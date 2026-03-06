@@ -10,6 +10,7 @@ from app.rag.embeddings import get_embedding
 from app.rag.vector_store import store_documents
 from app.rag.retriever import retrieve_similar_chunks
 from app.queue.tasks import rag_query_task, ingest_document_task
+from app.rag.documents import list_documents, delete_document
 
 
 
@@ -96,4 +97,26 @@ def get_job_ressult(job_id: str):
     return {
         "status": job.get_status()
     }
+
+# fetch all the documents
+@router.get("/documents")
+def get_documents():
+
+    doc = list_documents()
+
+    return {
+        "documents": doc
+    }
+
+# Delete the document
+@router.delete("/documents/{file_name}")
+def remove_document(file_name:str):
+
+    result = delete_document(file_name)
+
+    return{
+        "status": "deleted",
+        "document": result["deleted_document"]
+    }
+
 
