@@ -29,6 +29,8 @@ User → FastAPI → Redis (Valkey) → RQ Workers → RAG Pipeline → Qdrant �
    Qdrant Vector DB            Azure OpenAI
    (Semantic Search)           (Answer Gen)
 
+
+
 ## Features
 
 - Async job processing
