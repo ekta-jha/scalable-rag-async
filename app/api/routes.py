@@ -55,6 +55,7 @@ def search(query: str = Query(...)):
         "results": results
     }
 
+# RAG Query API
 @router.post("/rag-query")
 def enqueue_rag_query(query: str = Query(...)):
     """
@@ -72,6 +73,7 @@ def enqueue_rag_query(query: str = Query(...)):
         "status": "queued"
     }
 
+# Endpoint to check job status and fetch results
 @router.get("/job/{job_id}")
 def get_job_ressult(job_id: str):
     """
