@@ -8,7 +8,7 @@ from app.rag.pdf_loader import load_pdf, split_documents
 from app.rag.embeddings import get_embedding
 from app.rag.vector_store import store_documents
 from app.rag.retriever import retrieve_similar_chunks
-from app.queue.tasks import rag_query_task
+from app.queue.tasks import rag_query_task, ingest_document_task
 
 
 
@@ -17,31 +17,21 @@ router = APIRouter()
 # Uploading document and Creating embedding + storing it in Vector DB
 @router.post("/upload-pdf")
 async def upload_pdf(file: UploadFile = File(...)):
-    file_location = f"/tmp/{file.filename}"
+    file_location = f"/shared/{file.filename}"
 
     with open(file_location, "wb") as f:
         f.write(await file.read())
 
-    # 1. Load PDF
-    documents = load_pdf(file_location)
-
-    # 2. split into chunks
-    chunks = split_documents(documents)
-
-    # 3. Get Azure Embedding Model
-    embeddings_model = get_embedding()
-
-    # 4️ Store directly in Qdrant
-    points_stored = store_documents(
-        chunks=chunks,
-        embedding=embeddings_model
+    # Enqueue ingestion job
+    job = queue.enqueue(
+        ingest_document_task,
+        file_location,
+        job_timeout = 300
     )
 
     return{
-        "filename": file.filename,
-        "pages_loaded": len(documents),
-        "chunks_created": len(chunks),
-        "points_stored": points_stored
+        "job_id": job.id,
+        "status": "queued"
     }
 
 # Semilarity Search APi
@@ -89,7 +79,8 @@ def get_job_ressult(job_id: str):
     
     if job.is_failed:
         return {
-            "status": "failed"
+            "status": "failed",
+            "result": job.result
         }
     return {
         "status": job.get_status()

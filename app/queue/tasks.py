@@ -4,9 +4,18 @@ from dotenv import load_dotenv
 from app.rag.embeddings import get_embedding
 from app.core.azure_openai_client import get_azure_openai_client
 from app.rag.retriever import retrieve_similar_chunks
+from app.rag.pipeline import ingest_pdf
 
 load_dotenv()
 
+# Celery worker tasks for document ingestion
+def ingest_document_task(file_path: str):
+    """
+    Worker task to ingest a PDF document into the vector store.
+    """
+    return ingest_pdf(file_path)
+
+# Celery worker task for RAG query
 def rag_query_task(query: str):
     """ 
     Worker task: performs RAG for a given query.
@@ -41,3 +50,5 @@ def rag_query_task(query: str):
     answer = response.choices[0].message.content
     
     return {"answer": answer}
+
+
