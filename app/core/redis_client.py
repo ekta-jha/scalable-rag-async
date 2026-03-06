@@ -1,13 +1,23 @@
 import os
 from redis import Redis
+from rq import Queue
 
-REDIS_HOST = os.getenv("REDIS_HOST", "Host.docker.internal")
 
-redis_conn = Redis(host=REDIS_HOST, port=6379)
+def get_redis_connection() -> Redis:
+    """
+    Returns Redis connection used by RQ.
+    """
+    REDIS_HOST = os.getenv("REDIS_HOST", "Host.docker.internal")
+    port = int(os.environ.get("REDIS_PORT", 6379))
 
-def check_redis():
-    try:
-        redis_conn.ping()
-        return True
-    except Exception:
-        return False
+    return Redis(host=REDIS_HOST, port=port)
+
+
+# Create queue instance
+
+redis_conn = get_redis_connection()
+
+queue = Queue(
+    "default",
+    connection=redis_conn
+)
